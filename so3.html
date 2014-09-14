@@ -7,18 +7,20 @@
 </head>
 <body>
   <p>
-  <a href="http://en.wikipedia.org/wiki/Euler's_rotation_theorem">Euler's Rotation Theorem</a> states that any orientation-preserving isometry of 3-space preserving the origin is a rotation about some axis. As the earth wobbles randomly in the animation below, the red line indicates the axis around which the earth must be rotated from its current orientation to regain its starting orientation. (In other words, the isometry given by movement of the earth from its current orientation back to its starting orientation is a rotation about the red line.) To see this rotation in action, click anywhere on the figure. Click again to resume the random wobbling.
+    <a href="http://en.wikipedia.org/wiki/Euler's_rotation_theorem">Euler's Rotation Theorem</a> states that any orientation-preserving isometry (rigid motion) of a sphere is equivalent to a rotation by some amount about some axis. As the earth wobbles randomly in the animation below, the red line indicates the axis around which the earth must be rotated from its current orientation to regain its starting orientation. Thus the isometry given by movement of the earth from its starting orientation to its current orientation is the opposite rotation (again about the red line). To see this rotation in action, click anywhere on the figure. Click again to resume the random wobbling.
 </p>
   <script src="js/three.min.js"></script>
   <script>
     var width = 800;
     var height = 600;
+
     var scene = new THREE.Scene();
 
     var camera = new THREE.PerspectiveCamera (3, width/height, 0.1, 5000);
     camera.position.z = 3000;
     camera.position.x = 0;
     camera.position.y = 0;
+    //camera.rotation.x = -0.33; 
 
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width,height);
@@ -33,18 +35,18 @@
     sphere.position.set(0,0,0);
     scene.add(sphere);
 
-    var boxMat = new THREE.MeshLambertMaterial({color:0xff0000});
-    var boxGeom = new THREE.BoxGeometry(40,40,40);
-    var box = new THREE.Mesh (boxGeom, boxMat);
-    var boxMatrix = new THREE.Matrix4(Math.cos(2),-Math.sin(2),0,0,
-                                      Math.sin(2),Math.cos(2),0,0,
-                                      0,0,1,0,
-                                      0,0,0,1);
+    //var boxMat = new THREE.MeshLambertMaterial({color:0xff0000});
+    //var boxGeom = new THREE.BoxGeometry(40,40,40);
+    //var box = new THREE.Mesh (boxGeom, boxMat);
+    //var boxMatrix = new THREE.Matrix4(Math.cos(2),-Math.sin(2),0,0,
+                                      //Math.sin(2),Math.cos(2),0,0,
+                                      //0,0,1,0,
+                                      //0,0,0,1);
     //scene.add(box);
-    console.log("ROTATION",box.rotation.z);
+    //console.log("ROTATION",box.rotation.z);
 
     var cylMat = new THREE.MeshLambertMaterial({color:0xff0000});
-    var cylGeom = new THREE.CylinderGeometry(0.4,0.2,400);
+    var cylGeom = new THREE.CylinderGeometry(0.6,0.6,400);
     var cyl = new THREE.Mesh (cylGeom,cylMat);
     //THREE.GeometryUtils.merge(sphereGeometry,cylGeom);
     var cylMatrix = new THREE.Matrix4(1,0,0,0,
@@ -54,7 +56,20 @@
     cyl.applyMatrix(cylMatrix);
     cyl.position.set(0,0,0);
     scene.add(cyl);
-    console.log("BAR",cyl.rotation.x);
+
+    //var chiSMat = new THREE.MeshLambertMaterial({color:0xffff00});
+    //var chiCMat = new THREE.MeshLambertMaterial({color:0x00ff00});
+    //var chiSGeom = new THREE.SphereGeometry(1,32,32);
+    //var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,3);
+    //var chiS = new THREE.Mesh(chiSGeom,chiSMat);
+    //var chiC = new THREE.Mesh(chiCGeom,chiCMat);
+    //var chiLat = 41.8819;
+    //var chiLong = -87.6278;
+    //var chiRad = 51;
+    //chiS.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
+    //chiC.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
+    //scene.add(chiS);
+    //scene.add(chiC);
 
     //var seg = new THREE.Line3();
     //var segMat = /0
@@ -228,6 +243,8 @@
     }
     render();
   </script>
+
+  <p><small>Don't see anything? Most likely your browser isn't set up for <a href="http://www.khronos.org/webgl/">WebGL</a>. Maybe <a href="http://get.webgl.org/">get.webgl.org</a> will be helpful. If you see the spinning cube on that website but don't see anything here, <a href="https://github.com/ajdunlap/visualizing-so3/issues">do complain</a>.</small></p>
   <hr />
   <p><small>Source available on <a href="https://github.com/ajdunlap/visualizing-so3">GitHub</a>. Created with <a href="http://threejs.org">three.js</a>. World map from <a href="http://commons.wikimedia.org/wiki/User:Koba-chan">User:Koba-chan</a> on <a href="https://commons.wikimedia.org/wiki/File:WorldMap-A_non-Frame.png">Wikimedia Commons</a>, <a href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA-3.0</a>.</small></p>
   </body>
