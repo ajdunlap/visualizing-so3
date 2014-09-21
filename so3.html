@@ -85,19 +85,11 @@
     r31 = Math.random();
     r32 = Math.random();
     r33 = Math.random();
-    var advance = function () {}
     var advMatrix = new THREE.Matrix4();
     setInterval(function () {
       rx = Math.random()-0.5;
       ry = Math.random()-0.5;
       rz = Math.random()-0.5;
-
-      r21 = Math.random();
-      r22 = Math.random();
-      r23 = Math.random();
-      r31 = Math.random();
-      r32 = Math.random();
-      r33 = Math.random();
       //console.log("RR",cyl.rotation,cyl.position,cyl.scale,cyl.rotation.order);
       //console.log(Math.pow(vz,2)+Math.pow(vy,2)+Math.pow(vx,2));
     },2000);
@@ -105,10 +97,9 @@
     var myangle = 0;
     var space_age = false;
     renderer.domElement.addEventListener("click",
-      function () { space_age = !space_age; });
+      function () { space_age = !space_age; myangle = 0; });
 
     function render () {
-      //cyl.applyMatrix(cylMatrix);
       requestAnimationFrame(render);
       if (!space_age) {
         var n = Math.sqrt(rx*rx+ry*ry+rz*rz);
@@ -116,60 +107,36 @@
         ry = ry/n;
         rz = rz/n;
   
-        cyl.rotation.x = 0;
-        cyl.rotation.y = 0;
-        cyl.rotation.z = 0;
-        //console.log(cyl.scale.x,cyl.scale.y,cyl.scale.z);
-        cyl.scale.x = 1;
-        cyl.scale.y = 1;
-        cyl.scale.z = 1;
-        cyl.updateMatrix();
-  
+        // Rotate sphere
         sphere.rotation.x += rx/50;
         sphere.rotation.y += ry/50;
         sphere.rotation.z += rz/50;
-        //console.log(rx,sphere.rotation.x);
-  
-        var a = sphere.rotation.x;// = (rx)*3;// (Math.random()+rx-1)/50;
-        var b = sphere.rotation.y;// = (ry)*3;// (Math.random()+ry-1)/50;
-        var c = sphere.rotation.z;// = (rz)*3;// (Math.random()+rz-1)/50;
         sphere.updateMatrix();
-        //console.log("debug",sphere.rotation,sphere.matrix.elements);
   
+        //
+        // Calculate cylinder position
+        //
+        var a = sphere.rotation.x;
+        var b = sphere.rotation.y;
+        var c = sphere.rotation.z;
+  
+        // Coordinates of the fixed point (eigenvector)
         var vx = 1/Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2));
         var vy = -((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a))/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2))));
         var vz = -(Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1)/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2)));
+        // angle of rotation about the fixed axis
         angle = Math.acos(0.5*(-Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) + Math.cos(a)*Math.cos(c) + Math.cos(b)*Math.cos(c)-1));
-        myangle = 0;
-        //console.log("vz",vx,vy,vz,vx*vx+vy*vy+vz*vz);
+
+        // make cylMatrix point in the direction we want
         var v1 = new THREE.Vector3(vx,vy,vz);
-        var v2 = new THREE.Vector3(r21,r22,r23);
-        v1t = new THREE.Vector3();
-        v1t.copy(v1);
-        v1t.multiplyScalar(v2.dot(v1));
-        v2.sub(v1t);
-        v2.divideScalar(v2.length());
-        var v3 = new THREE.Vector3(r31,r32,r33);
-        //v3 = v3-v3.dot(v1)*v1-v3.dot(v2)*v2;
-        v1t.copy(v1);
-        v1t.multiplyScalar(v3.dot(v1));
-        var v2t = new THREE.Vector3();
-        v2t.copy(v2);
-        v2t.multiplyScalar(v3.dot(v2));
-        v3.sub(v1t);
-        v3.sub(v2t);
-        v3.divideScalar(v3.length());
-        cylMatrix.set(v2.x,v1.x,v3.x,0,
-                      v2.y,v1.y,v3.y,0,
-                      v2.z,v1.z,v3.z,0,
-                      0   ,0   ,0   ,1);
-        if (cylMatrix.determinant() < 0) {
-          v1.multiplyScalar(-1);
-          cylMatrix.set(v2.x,v1.x,v3.x,0,
-                        v2.y,v1.y,v3.y,0,
-                        v2.z,v1.z,v3.z,0,
-                        0   ,0   ,0   ,1);
-        }
+        rotationForVector(v1,cylMatrix);
+
+        // get the inverse of cylMatrix
+        var cylMatrixInv = new THREE.Matrix4;
+        cylMatrixInv.getInverse(cylMatrix);
+
+        // figure out which direction we need to rotate
+        var v2 = new THREE.Vector3(Math.random(),Math.random(),Math.random());
         var v2t = new THREE.Vector3();
         v2t.copy(v2);
         v2t.applyMatrix4(sphere.matrix);
@@ -180,26 +147,19 @@
         if (signMatrix.determinant() < 0) {
           angle = -angle;
         }
-        //console.log(cylMatrix,v1,v2,v3);
-        var cylMatrixInv = new THREE.Matrix4;
-        cylMatrixInv.getInverse(cylMatrix);
-        advance = function (t) {
-          rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
-          //var advMatrix = new THREE.Matrix4;
-          advMatrix.copy(cylMatrix);
-          advMatrix.multiply(rotMatrix);
-          advMatrix.multiply(cylMatrixInv);
-          //sphere.applyMatrix(advMatrix);
-        };
-        if (angle > 0) {
-          advance(0.04);
-        } else {
-          advance(-0.04);
-        }
-        //console.log("FOOBAR",cylMatrix.determinant());
-        //cylMatrix.set(v1[0],v1[1],v1[2],0,v2[0],v2[1],v2[2],0,v3[0],v3[1],v3[2],0,0,0,0,1);
-        cyl.applyMatrix(cylMatrix);
+
+        // set up matrix to rotate a little bit back to the original position
+        var t = 0.04*Math.sign(angle);
+        rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
+        advMatrix.copy(cylMatrix);
+        advMatrix.multiply(rotMatrix);
+        advMatrix.multiply(cylMatrixInv);
+  
+        cyl.rotation.x = 0;
+        cyl.rotation.y = 0;
+        cyl.rotation.z = 0;
         cyl.updateMatrix();
+        cyl.applyMatrix(cylMatrix);
       } else { // space_age
         if (myangle < Math.abs(angle)) {
           sphere.applyMatrix(advMatrix);
@@ -207,6 +167,41 @@
         }
       }
       renderer.render(scene,camera);
+    }
+
+    function rotationForVector(v1,outMatrix) {
+      var r21 = Math.random();
+      var r22 = Math.random();
+      var r23 = Math.random();
+      var r31 = Math.random();
+      var r32 = Math.random();
+      var r33 = Math.random();
+      var v2 = new THREE.Vector3(r21,r22,r23);
+      v1t = new THREE.Vector3();
+      v1t.copy(v1);
+      v1t.multiplyScalar(v2.dot(v1));
+      v2.sub(v1t);
+      v2.divideScalar(v2.length());
+      var v3 = new THREE.Vector3(r31,r32,r33);
+      v1t.copy(v1);
+      v1t.multiplyScalar(v3.dot(v1));
+      var v2t = new THREE.Vector3();
+      v2t.copy(v2);
+      v2t.multiplyScalar(v3.dot(v2));
+      v3.sub(v1t);
+      v3.sub(v2t);
+      v3.divideScalar(v3.length());
+      outMatrix.set(v2.x,v1.x,v3.x,0,
+                    v2.y,v1.y,v3.y,0,
+                    v2.z,v1.z,v3.z,0,
+                    0   ,0   ,0   ,1);
+      if (outMatrix.determinant() < 0) {
+        v1.multiplyScalar(-1);
+        outMatrix.set(v2.x,v1.x,v3.x,0,
+                      v2.y,v1.y,v3.y,0,
+                      v2.z,v1.z,v3.z,0,
+                      0   ,0   ,0   ,1);
+      }
     }
     render();
   </script>
