@@ -3,173 +3,172 @@
     <title>Visualizing Euler's Rotation Theorem</title>
     <style>p { font-family: "Arial", "Liberation Sans", sans-serif; }</style>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script src="js/three.min.js"></script>
 
-</head>
-<body>
-  <p>
-    <a href="http://en.wikipedia.org/wiki/Euler's_rotation_theorem">Euler's Rotation Theorem</a> states that any orientation-preserving isometry (rigid motion) of a sphere is equivalent to a rotation by some amount about some axis. As the earth wobbles randomly in the animation below, the red line indicates the axis around which the earth must be rotated from its current position to regain its starting position. Thus the isometry given by movement of the earth from its starting position to its current position is the opposite rotation (again about the red line). To see the rotation back to the starting position, click anywhere on the figure. Click again to resume the random wobbling.
-</p>
-  <script src="js/three.min.js"></script>
   <script>
-    var width = 800;
-    var height = 600;
+    function setup () {
+      var width = 800;
+      var height = 600;
+  
+      var scene = new THREE.Scene();
+  
+      var camera = new THREE.PerspectiveCamera (3, width/height, 0.1, 5000);
+      camera.position.z = 3000;
+      camera.position.x = 0;
+      camera.position.y = 0;
+  
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(width,height);
+      document.getElementById('animation-space').appendChild(renderer.domElement);
 
-    var scene = new THREE.Scene();
+      // Set up the earth
+      var sphereGeometry = new THREE.SphereGeometry (50,30,30);
+      var sphereTex = THREE.ImageUtils.loadTexture('pix/world3.png',{},function () {renderer.render(scene,camera);});
+      sphereTex.wrapS = sphereTex.wrapT = THREE.ClampToEdgeWrapping;
+      var sphereMat = new THREE.MeshLambertMaterial({map: sphereTex,opacity: 1});
+      var sphere = new THREE.Mesh (sphereGeometry, sphereMat);
+      sphere.position.set(0,0,0);
+      scene.add(sphere);
+      
+      //
+      //
+  
+      // Set up the axis descriptor
+      var cylMat = new THREE.MeshLambertMaterial({color:0xff0000});
+      var cylGeom = new THREE.CylinderGeometry(0.6,0.6,400);
+      var cyl = new THREE.Mesh (cylGeom,cylMat);
+      //THREE.GeometryUtils.merge(sphereGeometry,cylGeom);
+      var cylMatrix = new THREE.Matrix4(1,0,0,0,
+                                        0,1,0,0,
+                                        0,0,1,0,
+                                        0,0,0,1);
+      cyl.applyMatrix(cylMatrix);
+      cyl.position.set(0,0,0);
+      scene.add(cyl);
 
-    var camera = new THREE.PerspectiveCamera (3, width/height, 0.1, 5000);
-    camera.position.z = 3000;
-    camera.position.x = 0;
-    camera.position.y = 0;
+      //
+      //
+  
+      // Set up the light source
+      var pointLight = new THREE.PointLight(0xFFFFFF);
+      pointLight.position.x = 0;
+      pointLight.position.y = 0;
+      pointLight.position.z = 3000;
+      scene.add(pointLight);
 
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(width,height);
-    document.body.appendChild(renderer.domElement);
+      //var chiSMat = new THREE.MeshLambertMaterial({color:0xffff00});
+      //var chiCMat = new THREE.MeshLambertMaterial({color:0x00ff00});
+      //var chiSGeom = new THREE.SphereGeometry(1,32,32);
+      //var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,3);
+      //var chiS = new THREE.Mesh(chiSGeom,chiSMat);
+      //var chiC = new THREE.Mesh(chiCGeom,chiCMat);
+      //var chiLat = 41.8819;
+      //var chiLong = -87.6278;
+      //var chiRad = 51;
+      //chiS.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
+      //chiC.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
+      //scene.add(chiS);
+      //scene.add(chiC);
 
-    // Set up the earth
-    var sphereGeometry = new THREE.SphereGeometry (50,30,30);
-    var sphereTex = THREE.ImageUtils.loadTexture('pix/world3.png',{},function () {renderer.render(scene,camera);});
-    sphereTex.wrapS = sphereTex.wrapT = THREE.ClampToEdgeWrapping;
-    var sphereMat = new THREE.MeshLambertMaterial({map: sphereTex,opacity: 1});
-    var sphere = new THREE.Mesh (sphereGeometry, sphereMat);
-    sphere.position.set(0,0,0);
-    scene.add(sphere);
-    
-    //
-    //
-
-    // Set up the axis descriptor
-    var cylMat = new THREE.MeshLambertMaterial({color:0xff0000});
-    var cylGeom = new THREE.CylinderGeometry(0.6,0.6,400);
-    var cyl = new THREE.Mesh (cylGeom,cylMat);
-    //THREE.GeometryUtils.merge(sphereGeometry,cylGeom);
-    var cylMatrix = new THREE.Matrix4(1,0,0,0,
-                                      0,1,0,0,
-                                      0,0,1,0,
-                                      0,0,0,1);
-    cyl.applyMatrix(cylMatrix);
-    cyl.position.set(0,0,0);
-    scene.add(cyl);
-
-    //
-    //
-
-    // Set up the light source
-    var pointLight = new THREE.PointLight(0xFFFFFF);
-    pointLight.position.x = 0;
-    pointLight.position.y = 0;
-    pointLight.position.z = 3000;
-    scene.add(pointLight);
-
-    //var chiSMat = new THREE.MeshLambertMaterial({color:0xffff00});
-    //var chiCMat = new THREE.MeshLambertMaterial({color:0x00ff00});
-    //var chiSGeom = new THREE.SphereGeometry(1,32,32);
-    //var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,3);
-    //var chiS = new THREE.Mesh(chiSGeom,chiSMat);
-    //var chiC = new THREE.Mesh(chiCGeom,chiCMat);
-    //var chiLat = 41.8819;
-    //var chiLong = -87.6278;
-    //var chiRad = 51;
-    //chiS.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
-    //chiC.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
-    //scene.add(chiS);
-    //scene.add(chiC);
-
-    var rx,ry,rz;
-    rx = Math.random()-0.5;
-    ry = Math.random()-0.5;
-    rz = Math.random()-0.5;
-    var r21, r22, r23, r31, r32, r33;
-    r21 = Math.random();
-    r22 = Math.random();
-    r23 = Math.random();
-    r31 = Math.random();
-    r32 = Math.random();
-    r33 = Math.random();
-    var advMatrix = new THREE.Matrix4();
-    setInterval(function () {
+      var rx,ry,rz;
       rx = Math.random()-0.5;
       ry = Math.random()-0.5;
       rz = Math.random()-0.5;
-      //console.log("RR",cyl.rotation,cyl.position,cyl.scale,cyl.rotation.order);
-      //console.log(Math.pow(vz,2)+Math.pow(vy,2)+Math.pow(vx,2));
-    },2000);
-    var angle = 0;
-    var myangle = 0;
-    var space_age = false;
-    renderer.domElement.addEventListener("click",
-      function () { space_age = !space_age; myangle = 0; });
-
-    function render () {
-      requestAnimationFrame(render);
-      if (!space_age) {
-        var n = Math.sqrt(rx*rx+ry*ry+rz*rz);
-        rx = rx/n;
-        ry = ry/n;
-        rz = rz/n;
+      var r21, r22, r23, r31, r32, r33;
+      r21 = Math.random();
+      r22 = Math.random();
+      r23 = Math.random();
+      r31 = Math.random();
+      r32 = Math.random();
+      r33 = Math.random();
+      var advMatrix = new THREE.Matrix4();
+      setInterval(function () {
+        rx = Math.random()-0.5;
+        ry = Math.random()-0.5;
+        rz = Math.random()-0.5;
+        //console.log("RR",cyl.rotation,cyl.position,cyl.scale,cyl.rotation.order);
+        //console.log(Math.pow(vz,2)+Math.pow(vy,2)+Math.pow(vx,2));
+      },2000);
+      var angle = 0;
+      var myangle = 0;
+      var space_age = false;
+      renderer.domElement.addEventListener("click",
+        function () { space_age = !space_age; myangle = 0; });
   
-        // Rotate sphere
-        sphere.rotation.x += rx/50;
-        sphere.rotation.y += ry/50;
-        sphere.rotation.z += rz/50;
-        sphere.updateMatrix();
+      render = function () {
+        requestAnimationFrame(render);
+        if (!space_age) {
+          var n = Math.sqrt(rx*rx+ry*ry+rz*rz);
+          rx = rx/n;
+          ry = ry/n;
+          rz = rz/n;
+    
+          // Rotate sphere
+          sphere.rotation.x += rx/50;
+          sphere.rotation.y += ry/50;
+          sphere.rotation.z += rz/50;
+          sphere.updateMatrix();
+    
+          //
+          // Calculate cylinder position
+          //
+          var a = sphere.rotation.x;
+          var b = sphere.rotation.y;
+          var c = sphere.rotation.z;
   
-        //
-        // Calculate cylinder position
-        //
-        var a = sphere.rotation.x;
-        var b = sphere.rotation.y;
-        var c = sphere.rotation.z;
+          // Coordinates of the fixed point (eigenvector)
+          var vx = 1/Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2));
+          var vy = -((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a))/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2))));
+          var vz = -(Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1)/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2)));
+          // angle of rotation about the fixed axis
+          angle = Math.acos(0.5*(-Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) + Math.cos(a)*Math.cos(c) + Math.cos(b)*Math.cos(c)-1));
+
+          // make cylMatrix point in the direction we want
+          var v1 = new THREE.Vector3(vx,vy,vz);
+          rotationForVector(v1,cylMatrix);
+
+          // get the inverse of cylMatrix
+          var cylMatrixInv = new THREE.Matrix4;
+          cylMatrixInv.getInverse(cylMatrix);
+
+          // figure out which direction we need to rotate
+          var v2 = new THREE.Vector3(Math.random(),Math.random(),Math.random());
+          var v2t = new THREE.Vector3();
+          v2t.copy(v2);
+          v2t.applyMatrix4(sphere.matrix);
+          var signMatrix = new THREE.Matrix3();
+          signMatrix.set(v1.x,v2.x,v2t.x,
+                        v1.y,v2.y,v2t.y,
+                        v1.z,v2.z,v2t.z);
+          if (signMatrix.determinant() < 0) {
+            angle = -angle;
+          }
   
-        // Coordinates of the fixed point (eigenvector)
-        var vx = 1/Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2));
-        var vy = -((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a))/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2))));
-        var vz = -(Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1)/((Math.cos(a)*Math.cos(c)*Math.sin(b) - Math.sin(a)*Math.sin(c) - Math.sin(b))*Math.sqrt((Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2) + Math.pow((Math.cos(a)*Math.sin(b)*Math.sin(c) - Math.cos(b)*Math.sin(a) + Math.cos(c)*Math.sin(a)),2) + Math.pow((Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) - (Math.cos(a) + Math.cos(b))*Math.cos(c) + 1),2))/Math.pow((-Math.cos(a)*Math.cos(c)*Math.sin(b) + Math.sin(a)*Math.sin(c) + Math.sin(b)),2)));
-        // angle of rotation about the fixed axis
-        angle = Math.acos(0.5*(-Math.sin(a)*Math.sin(b)*Math.sin(c) + Math.cos(a)*Math.cos(b) + Math.cos(a)*Math.cos(c) + Math.cos(b)*Math.cos(c)-1));
-
-        // make cylMatrix point in the direction we want
-        var v1 = new THREE.Vector3(vx,vy,vz);
-        rotationForVector(v1,cylMatrix);
-
-        // get the inverse of cylMatrix
-        var cylMatrixInv = new THREE.Matrix4;
-        cylMatrixInv.getInverse(cylMatrix);
-
-        // figure out which direction we need to rotate
-        var v2 = new THREE.Vector3(Math.random(),Math.random(),Math.random());
-        var v2t = new THREE.Vector3();
-        v2t.copy(v2);
-        v2t.applyMatrix4(sphere.matrix);
-        var signMatrix = new THREE.Matrix3();
-        signMatrix.set(v1.x,v2.x,v2t.x,
-                       v1.y,v2.y,v2t.y,
-                       v1.z,v2.z,v2t.z);
-        if (signMatrix.determinant() < 0) {
-          angle = -angle;
+          // set up matrix to rotate a little bit back to the original position
+          var t = 0.04*Math.sign(angle);
+          rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
+          advMatrix.copy(cylMatrix);
+          advMatrix.multiply(rotMatrix);
+          advMatrix.multiply(cylMatrixInv);
+    
+          cyl.rotation.x = 0;
+          cyl.rotation.y = 0;
+          cyl.rotation.z = 0;
+          cyl.updateMatrix();
+          cyl.applyMatrix(cylMatrix);
+        } else { // space_age
+          if (myangle < Math.abs(angle)) {
+            sphere.applyMatrix(advMatrix);
+            myangle += 0.04;
+          }
         }
-
-        // set up matrix to rotate a little bit back to the original position
-        var t = 0.04*Math.sign(angle);
-        rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
-        advMatrix.copy(cylMatrix);
-        advMatrix.multiply(rotMatrix);
-        advMatrix.multiply(cylMatrixInv);
-  
-        cyl.rotation.x = 0;
-        cyl.rotation.y = 0;
-        cyl.rotation.z = 0;
-        cyl.updateMatrix();
-        cyl.applyMatrix(cylMatrix);
-      } else { // space_age
-        if (myangle < Math.abs(angle)) {
-          sphere.applyMatrix(advMatrix);
-          myangle += 0.04;
-        }
+        renderer.render(scene,camera);
       }
-      renderer.render(scene,camera);
+      render();
     }
 
     function rotationForVector(v1,outMatrix) {
+      // WARNING: might flip v1
       var r21 = Math.random();
       var r22 = Math.random();
       var r23 = Math.random();
@@ -203,8 +202,16 @@
                       0   ,0   ,0   ,1);
       }
     }
-    render();
+
+    window.onload = setup;
   </script>
+  </head>
+<body>
+  <p>
+    <a href="http://en.wikipedia.org/wiki/Euler's_rotation_theorem">Euler's Rotation Theorem</a> states that any orientation-preserving isometry (rigid motion) of a sphere is equivalent to a rotation by some amount about some axis. As the earth wobbles randomly in the animation below, the red line indicates the axis around which the earth must be rotated from its current position to regain its starting position. Thus the isometry given by movement of the earth from its starting position to its current position is the opposite rotation (again about the red line). To see the rotation back to the starting position, click anywhere on the figure. Click again to resume the random wobbling.
+</p>
+  <div id="animation-space">
+  </div>
 
   <p><small>Don't see anything? Most likely your browser isn't set up for <a href="http://www.khronos.org/webgl/">WebGL</a>. Maybe <a href="http://get.webgl.org/">get.webgl.org</a> will be helpful. If you see the spinning cube on that website but don't see anything here, <a href="https://github.com/ajdunlap/visualizing-so3/issues">do complain</a>.</small></p>
   <hr />
