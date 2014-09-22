@@ -18,6 +18,7 @@
       camera.position.y = 0;
   
       var renderer = new THREE.WebGLRenderer();
+      renderer.sortObjects = false;
       renderer.setSize(width,height);
       document.getElementById('animation-space').appendChild(renderer.domElement);
 
@@ -57,38 +58,66 @@
       scene.add(pointLight);
 
       //var chiSMat = new THREE.MeshLambertMaterial({color:0xffff00});
-      //var chiCMat = new THREE.MeshLambertMaterial({color:0x00ff00});
-      //var chiSGeom = new THREE.SphereGeometry(1,32,32);
-      //var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,3);
-      //var chiS = new THREE.Mesh(chiSGeom,chiSMat);
-      //var chiC = new THREE.Mesh(chiCGeom,chiCMat);
-      //var chiLat = 41.8819;
-      //var chiLong = -87.6278;
-      //var chiRad = 51;
-      //chiS.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
-      //chiC.position.set(chiRad*Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/180*Math.PI),chiRad*Math.cos(chiLat/180*Math.PI),chiRad*Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI))
-      //scene.add(chiS);
-      //scene.add(chiC);
+      //var chiCMat = new THREE.MeshLambertMaterial({color:0xffff00});
+      function makePin (col) {
+        var chiMat = new THREE.MeshLambertMaterial({color:col});
+        var chiSGeom = new THREE.SphereGeometry(1,32,32);
+        var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,5);
+        //chiCGeom.position.y += 10;
+        var chiS = new THREE.Mesh(chiSGeom,chiMat);
+        var chiC = new THREE.Mesh(chiCGeom,chiMat);
+        chiC.position.y -= 2;
+        THREE.GeometryUtils.merge(chiSGeom,chiC);
+        scene.add(chiS);
+        return chiS;
+        //scene.add(chiC);
+      }
+
+      var chiLat = 41.8819;
+      var chiLong = -87.6278;
+
+      var vx = Math.sin(chiLat/180*Math.PI)*Math.cos(-chiLong/ 180*Math.PI);
+      var vy = Math.cos(chiLat/180*Math.PI);
+      var vz = Math.sin(chiLat/180*Math.PI)*Math.sin(-chiLong/180*Math.PI);
+
+      var chiVector = new THREE.Vector3(vx,vy,vz);
+
+      function movePin (pin,dir) {
+        var chiRad = 54;
+        var chiMatrix = new THREE.Matrix4();
+        rotationForVector(dir,chiMatrix,false);
+        pin.rotation.x = 0;
+        pin.rotation.y = 0;
+        pin.rotation.z = 0;
+        pin.updateMatrix();
+        pin.applyMatrix(chiMatrix);
+        pin.position.set(chiRad*dir.x,chiRad*dir.y,chiRad*dir.z);
+      }
+
+      function makeColor (frac) {
+        var p = Math.floor(frac*255);
+        return 'rgb(' + p + ',' + p + ',' + p + ')';
+      }
+
+      var nChiPins = 15;
+      var chiPins = [];
+      for (var j = 0 ; j < nChiPins ; ++j) {
+        var col = makeColor((j+1)/nChiPins)
+        console.log(col);
+        chiPins.push(makePin(col));
+      }
+
+      var advMatrix = new THREE.Matrix4();
 
       var rx,ry,rz;
-      rx = Math.random()-0.5;
-      ry = Math.random()-0.5;
-      rz = Math.random()-0.5;
-      var r21, r22, r23, r31, r32, r33;
-      r21 = Math.random();
-      r22 = Math.random();
-      r23 = Math.random();
-      r31 = Math.random();
-      r32 = Math.random();
-      r33 = Math.random();
-      var advMatrix = new THREE.Matrix4();
-      setInterval(function () {
+      function updateDirection () {
         rx = Math.random()-0.5;
         ry = Math.random()-0.5;
         rz = Math.random()-0.5;
-        //console.log("RR",cyl.rotation,cyl.position,cyl.scale,cyl.rotation.order);
-        //console.log(Math.pow(vz,2)+Math.pow(vy,2)+Math.pow(vx,2));
-      },2000);
+      }
+      updateDirection();
+      setInterval(updateDirection,2000);
+
       var angle = 0;
       var myangle = 0;
       var space_age = false;
@@ -107,6 +136,10 @@
           sphere.rotation.x += rx/50;
           sphere.rotation.y += ry/50;
           sphere.rotation.z += rz/50;
+          //chiNowPin.rotation.x += rx/50;
+          //chiNowPin.rotation.y += ry/50;
+          //chiNowPin.rotation.z += rz/50;
+          //chiNowPin.updateMatrix();
           sphere.updateMatrix();
     
           //
@@ -125,7 +158,7 @@
 
           // make cylMatrix point in the direction we want
           var v1 = new THREE.Vector3(vx,vy,vz);
-          rotationForVector(v1,cylMatrix);
+          rotationForVector(v1,cylMatrix,true);
 
           // get the inverse of cylMatrix
           var cylMatrixInv = new THREE.Matrix4;
@@ -143,7 +176,14 @@
           if (signMatrix.determinant() < 0) {
             angle = -angle;
           }
-  
+
+          var chiVectorT = new THREE.Vector3();
+          chiVectorT.copy(chiVector);
+          for (var j = 0 ; j < nChiPins ; ++j) {
+            movePin(chiPins[j],chiVectorT);
+            chiVectorT.applyMatrix4(sphere.matrix);
+          }
+
           // set up matrix to rotate a little bit back to the original position
           var t = 0.04*Math.sign(angle);
           rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
@@ -167,8 +207,7 @@
       render();
     }
 
-    function rotationForVector(v1,outMatrix) {
-      // WARNING: might flip v1
+    function rotationForVector(v1,outMatrix,flip) {
       var r21 = Math.random();
       var r22 = Math.random();
       var r23 = Math.random();
@@ -195,11 +234,15 @@
                     v2.z,v1.z,v3.z,0,
                     0   ,0   ,0   ,1);
       if (outMatrix.determinant() < 0) {
-        v1.multiplyScalar(-1);
-        outMatrix.set(v2.x,v1.x,v3.x,0,
-                      v2.y,v1.y,v3.y,0,
-                      v2.z,v1.z,v3.z,0,
-                      0   ,0   ,0   ,1);
+        if (flip) {
+          v1.multiplyScalar(-1);
+        } else {
+          v2.multiplyScalar(-1);
+        }
+          outMatrix.set(v2.x,v1.x,v3.x,0,
+                        v2.y,v1.y,v3.y,0,
+                        v2.z,v1.z,v3.z,0,
+                        0   ,0   ,0   ,1);
       }
     }
 
