@@ -1,11 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>Visualizing Euler's Rotation Theorem</title>
-    <style>p { font-family: "Arial", "Liberation Sans", sans-serif; }</style>
+    <style type="text/css">p,label { font-family: "Arial", "Liberation Sans", sans-serif; }</style>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <script src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/three.min.js"></script>
 
-  <script>
+  <script type="text/javascript">
     function setup () {
       var width = 800;
       var height = 600;
@@ -57,20 +58,16 @@
       pointLight.position.z = 3000;
       scene.add(pointLight);
 
-      //var chiSMat = new THREE.MeshLambertMaterial({color:0xffff00});
-      //var chiCMat = new THREE.MeshLambertMaterial({color:0xffff00});
       function makePin (col) {
         var chiMat = new THREE.MeshLambertMaterial({color:col});
         var chiSGeom = new THREE.SphereGeometry(1,32,32);
         var chiCGeom = new THREE.CylinderGeometry(0.4,0.4,5);
-        //chiCGeom.position.y += 10;
         var chiS = new THREE.Mesh(chiSGeom,chiMat);
         var chiC = new THREE.Mesh(chiCGeom,chiMat);
         chiC.position.y -= 2;
         THREE.GeometryUtils.merge(chiSGeom,chiC);
         scene.add(chiS);
         return chiS;
-        //scene.add(chiC);
       }
 
       var chiLat = 41.8819;
@@ -99,14 +96,36 @@
         return 'rgb(' + p + ',' + p + ',' + p + ')';
       }
 
-      var nChiPins = 15;
+      var nChiPins = 0;
       var chiPins = [];
-      for (var j = 0 ; j < nChiPins ; ++j) {
-        var col = makeColor((j+1)/nChiPins)
-        console.log(col);
-        chiPins.push(makePin(col));
-      }
 
+      function changeNumberOfPins () {
+        var n = document.getElementById('num-points').value;
+        if (n == nChiPins) return;
+        else {
+          for (var j = 0 ; j < nChiPins ; ++j) {
+            var pin = chiPins.pop();
+            scene.remove(pin);
+          }
+          for (var j = 0 ; j < n ; ++j) {
+            var col = makeColor(j/n);
+            chiPins.push(makePin(col));
+          }
+        }
+        nChiPins = n;
+      }
+      document.getElementById('num-points').onchange = changeNumberOfPins;
+      function moveChiVectors () {
+        var chiVectorT = new THREE.Vector3();
+        chiVectorT.copy(chiVector);
+        for (var j = 0 ; j < nChiPins ; ++j) {
+          movePin(chiPins[j],chiVectorT);
+          chiVectorT.applyMatrix4(sphere.matrix);
+        }
+      }
+      changeNumberOfPins(5);
+
+      var makeAdvMatrix;
       var advMatrix = new THREE.Matrix4();
 
       var rx,ry,rz;
@@ -136,10 +155,6 @@
           sphere.rotation.x += rx/50;
           sphere.rotation.y += ry/50;
           sphere.rotation.z += rz/50;
-          //chiNowPin.rotation.x += rx/50;
-          //chiNowPin.rotation.y += ry/50;
-          //chiNowPin.rotation.z += rz/50;
-          //chiNowPin.updateMatrix();
           sphere.updateMatrix();
     
           //
@@ -164,6 +179,8 @@
           var cylMatrixInv = new THREE.Matrix4;
           cylMatrixInv.getInverse(cylMatrix);
 
+          moveChiVectors();
+
           // figure out which direction we need to rotate
           var v2 = new THREE.Vector3(Math.random(),Math.random(),Math.random());
           var v2t = new THREE.Vector3();
@@ -177,19 +194,16 @@
             angle = -angle;
           }
 
-          var chiVectorT = new THREE.Vector3();
-          chiVectorT.copy(chiVector);
-          for (var j = 0 ; j < nChiPins ; ++j) {
-            movePin(chiPins[j],chiVectorT);
-            chiVectorT.applyMatrix4(sphere.matrix);
-          }
 
           // set up matrix to rotate a little bit back to the original position
-          var t = 0.04*Math.sign(angle);
-          rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
-          advMatrix.copy(cylMatrix);
-          advMatrix.multiply(rotMatrix);
-          advMatrix.multiply(cylMatrixInv);
+          makeAdvMatrix = function (t) {
+            t *= Math.sign(angle);
+            var rotMatrix = new THREE.Matrix4 (Math.cos(t),0,-Math.sin(t),0,0,1,0,0,Math.sin(t),0,Math.cos(t),0,0,0,0,1);
+            advMatrix.copy(cylMatrix);
+            advMatrix.multiply(rotMatrix);
+            advMatrix.multiply(cylMatrixInv);
+          }
+          makeAdvMatrix(0.04);
     
           cyl.rotation.x = 0;
           cyl.rotation.y = 0;
@@ -197,10 +211,15 @@
           cyl.updateMatrix();
           cyl.applyMatrix(cylMatrix);
         } else { // space_age
-          if (myangle < Math.abs(angle)) {
+          if (myangle < Math.abs(angle)-0.04) {
             sphere.applyMatrix(advMatrix);
             myangle += 0.04;
+          } else if (myangle < Math.abs(angle)) {
+            makeAdvMatrix(Math.abs(angle)-myangle);
+            sphere.applyMatrix(advMatrix);
+            myangle = Math.abs(angle);
           }
+          moveChiVectors();
         }
         renderer.render(scene,camera);
       }
@@ -255,6 +274,10 @@
 </p>
   <div id="animation-space">
   </div>
+
+  <p>One way to see this theorem as plausible is to think about the orbit of a point under the action of the motion (rotation) from the starting orientation to the current orientation. You can see some points from the orbit of Chicago by incrementing the value of the box below. Note that if the value is set to 1, only the zeroeth iteration (the starting position of Chicago) will be shown.</p>
+
+  <input type="number" min="0" max="50" step="1" value="0" name="num-points" id="num-points" /><label for="num-points">Number of Chicago orbit points</label>
 
   <p><small>Don't see anything? Most likely your browser isn't set up for <a href="http://www.khronos.org/webgl/">WebGL</a>. Maybe <a href="http://get.webgl.org/">get.webgl.org</a> will be helpful. If you see the spinning cube on that website but don't see anything here, <a href="https://github.com/ajdunlap/visualizing-so3/issues">do complain</a>.</small></p>
   <hr />
